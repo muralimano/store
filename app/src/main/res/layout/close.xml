@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    android:background="@color/windowBackground" >
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_margin="10dp"
+        android:gravity="center_horizontal">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="5dp"
+            android:src="@drawable/tray" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/textColorSecondaryDark" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="1dp"
+            android:orientation="vertical"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="15dp"
+            android:gravity="center_horizontal"
+            android:background="@color/dividerLight" >
+
+            <TextView
+                android:id="@+id/official_web"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:text="Restaurant Is Closed"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:clickable="true"
+                android:paddingEnd="5dp"
+                android:paddingStart="10dp"
+                android:gravity="center_vertical"
+                android:textAlignment="center"
+                android:background="@drawable/rounded_corners_button_red"
+                />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/l1"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/rounded_corners_button_blue"
+            android:layout_marginTop="18dp"
+            android:text="close" />
+
+    </LinearLayout>
+
+
+</android.support.v4.widget.NestedScrollView>
