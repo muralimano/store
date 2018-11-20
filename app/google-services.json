@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "706308330551",
+    "firebase_url": "https://sttore-d6526.firebaseio.com",
+    "project_id": "sttore-d6526",
+    "storage_bucket": "sttore-d6526.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706308330551:android:f0699f41b87c86ab",
+        "android_client_info": {
+          "package_name": "com.oceansoftwares.store"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "706308330551-ar1ke5ekmnruso7avh7b1j6oo15fav8t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD94Lzz-O_js7ia1XcD9HQG_kUMkM65nMU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
