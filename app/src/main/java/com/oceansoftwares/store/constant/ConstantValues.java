@@ -9,7 +9,7 @@ package com.oceansoftwares.store.constant;
 public class ConstantValues {
     
     //*********** API Base URL ********//
-    public static final String ECOMMERCE_URL = "http://shop.uthsoftware.com/";
+    public static final String ECOMMERCE_URL = "http://store.kagee.in/";
    // public static final String ECOMMERCE_URL = "http://your_domain.com/";
     
     // "false" if compiling the project for Demo, "true" otherwise
