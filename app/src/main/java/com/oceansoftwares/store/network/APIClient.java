@@ -6,8 +6,11 @@ import com.oceansoftwares.store.constant.ConstantValues;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+
 
 
 /**
@@ -27,12 +30,20 @@ public class APIClient {
     public static APIRequests getInstance() {
         if (apiRequests == null) {
 
+            HttpLoggingInterceptor logging=new HttpLoggingInterceptor();
+
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
             OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
                     .connectTimeout(60, TimeUnit.SECONDS)
                     .readTimeout(60, TimeUnit.SECONDS)
                     .writeTimeout(60, TimeUnit.SECONDS)
+                    .addInterceptor(logging)
                     .build();
-            
+
+           // OkHttpClient.Builder bl=  new  OkHttpClient.Builder();
+           // bl.addInterceptor(logging);
+
             
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
