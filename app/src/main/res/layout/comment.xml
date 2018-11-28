@@ -62,7 +62,7 @@
                     android:visibility="gone"
                     android:textColor="@color/textColorSecondaryLight"
                     android:textColorHint="@color/textColorPrimaryDark"
-                    android:drawableStart="@drawable/ic_chat_bubble"
+                    android:drawableLeft="@drawable/ic_chat_bubble"
                     android:drawablePadding="15dp"
                     android:paddingStart="15dp"
                     android:paddingEnd="15dp"

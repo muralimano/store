@@ -117,14 +117,14 @@ public class Checkout extends Fragment {
     View rootView;
     AlertDialog demoCouponsDialog;
     boolean disableOtherCoupons = false;
-    
+
     String tax;
     String braintreeToken;
     String selectedPaymentMethod;
     String paymentNonceToken = "";
-    String Round="";
-    double checkoutSubtotal, checkoutTax, checkoutShipping, checkoutShippingCost, checkoutDiscount, checkoutTotal,round,gross,roundoff1 = 0;
-    
+    String Round = "";
+    double checkoutSubtotal, checkoutTax, checkoutShipping, checkoutShippingCost, checkoutDiscount, checkoutTotal, round, gross, roundoff1 = 0;
+
     Button checkout_paypal_btn;
     CardView card_details_layout;
     ProgressDialog progressDialog;
@@ -137,17 +137,16 @@ public class Checkout extends Fragment {
     TextView checkout_subtotal, checkout_tax, checkout_shipping, checkout_discount, checkout_total, demo_coupons_text;
     TextView billing_name, billing_street, billing_address, shipping_name, shipping_street, shipping_address, shipping_method, payment_method;
 
-    TextView grossvalue,roundoff;
-    
-    
+    TextView grossvalue, roundoff;
+
+
     List<CouponsInfo> couponsList;
     List<String> paymentMethodsList;
     List<CartProduct> checkoutItemsList;
 
-    ArrayList<String> mQuantity=new ArrayList<>();
+    ArrayList<String> mQuantity = new ArrayList<>();
 
 
-    
     UserDetails userInfo;
     DialogLoader dialogLoader;
     AddressDetails billingAddress;
@@ -155,12 +154,12 @@ public class Checkout extends Fragment {
     CouponsAdapter couponsAdapter;
     ShippingService shippingMethod;
     CheckoutItemsAdapter checkoutItemsAdapter;
-    
+
     User_Cart_DB user_cart_db = new User_Cart_DB();
     User_Info_DB user_info_db = new User_Info_DB();
-    Restaurant_Status_DB restaurant_status_db=new Restaurant_Status_DB();
-    
-    
+    Restaurant_Status_DB restaurant_status_db = new Restaurant_Status_DB();
+
+
     CardBuilder braintreeCard;
     BraintreeFragment braintreeFragment;
     com.stripe.android.model.Card stripeCard;
@@ -168,23 +167,24 @@ public class Checkout extends Fragment {
     private String PAYMENT_CURRENCY = "USD";
     private String STRIPE_PUBLISHABLE_KEY = "";
     private String PAYPAL_PUBLISHABLE_KEY = "";
-    
+
     private static PayPalConfiguration payPalConfiguration;
     private static final int SIMPLE_PAYPAL_REQUEST_CODE = 123;
-    
-    
+
+
     CardType cardType;
     SupportedCardTypesView braintreeSupportedCards;
 
-    private static final CardType[] SUPPORTED_CARD_TYPES = { CardType.VISA, CardType.MASTERCARD, CardType.MAESTRO,
-                                                             CardType.UNIONPAY, CardType.AMEX};
+    private static final CardType[] SUPPORTED_CARD_TYPES = {CardType.VISA, CardType.MASTERCARD, CardType.MAESTRO,
+            CardType.UNIONPAY, CardType.AMEX};
+
     @Nullable
     @Override
     public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.checkout, container, false);
 
         // Set the Title of Toolbar
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(getString(R.string.checkout));
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(getString(R.string.checkout));
 
         // Get selectedShippingMethod, billingAddress and shippingAddress from ApplicationContext
         tax = ((App) getContext().getApplicationContext()).getTax();
@@ -230,12 +230,12 @@ public class Checkout extends Fragment {
         scroll_container = (NestedScrollView) rootView.findViewById(R.id.scroll_container);
         braintreeSupportedCards = (SupportedCardTypesView) rootView.findViewById(R.id.supported_card_types);
 
-        grossvalue=(TextView)rootView.findViewById(R.id.checkout_gross);
-        roundoff=(TextView)rootView.findViewById(R.id.checkout_roundoff);
+        grossvalue = (TextView) rootView.findViewById(R.id.checkout_gross);
+        roundoff = (TextView) rootView.findViewById(R.id.checkout_roundoff);
 
 
         braintreeSupportedCards.setSupportedCardTypes(SUPPORTED_CARD_TYPES);
-    
+
         checkout_order_btn.setEnabled(false);
         card_details_layout.setVisibility(View.GONE);
         checkout_paypal_btn.setVisibility(View.GONE);
@@ -246,20 +246,20 @@ public class Checkout extends Fragment {
 
         checkout_card_expiry.setKeyListener(null);
 
-        
+
         dialogLoader = new DialogLoader(getContext());
-    
-        
+
+
         checkoutItemsList = new ArrayList<>();
         paymentMethodsList = new ArrayList<>();
         couponsList = new ArrayList<>();
-        
+
         // Get checkoutItems from Local Databases User_Cart_DB
         checkoutItemsList = user_cart_db.getCartItems();
         // Request Shipping Rates
-       // RequestShippingRates();
+        // RequestShippingRates();
 
-        for(int i=0;i<checkoutItemsList.size();i++){
+        for (int i = 0; i < checkoutItemsList.size(); i++) {
             CartProduct cartProduct = checkoutItemsList.get(i);
             mQuantity.add(String.valueOf(cartProduct.getCustomersBasketProduct().getCustomersBasketQuantity()));
 
@@ -268,8 +268,6 @@ public class Checkout extends Fragment {
         Log.e("Quantity:", String.valueOf(mQuantity));
 
 
-
-        
         // Request Payment Methods
         RequestPaymentMethods();
 
@@ -281,12 +279,11 @@ public class Checkout extends Fragment {
         checkout_items_recycler.setAdapter(checkoutItemsAdapter);
         checkout_items_recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         checkout_items_recycler.addItemDecoration(new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL));
-    
-    
-    
+
+
         // Initialize the CouponsAdapter for RecyclerView
         couponsAdapter = new CouponsAdapter(getContext(), couponsList, true, Checkout.this);
-    
+
         // Set the Adapter, LayoutManager and ItemDecoration to the RecyclerView
         checkout_coupons_recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         checkout_coupons_recycler.setAdapter(couponsAdapter);
@@ -294,20 +291,19 @@ public class Checkout extends Fragment {
         couponsAdapter.notifyDataSetChanged();
 
 
-
         checkoutTax = Double.parseDouble(tax);
-       // shipping_method.setText(shippingMethod.getName() + " ("+ shippingMethod.getShippingMethod() +")");
+        // shipping_method.setText(shippingMethod.getName() + " ("+ shippingMethod.getShippingMethod() +")");
         shipping_method.setText(shippingMethod.getName());
         checkoutShipping = checkoutShippingCost = Double.parseDouble(shippingMethod.getRate());
-    
+
         // Set Billing Details
-        shipping_name.setText(shippingAddress.getFirstname()+" "+shippingAddress.getLastname());
-        shipping_address.setText(shippingAddress.getZoneName()+", "+shippingAddress.getCountryName());
+        shipping_name.setText(shippingAddress.getFirstname() + " " + shippingAddress.getLastname());
+        shipping_address.setText(shippingAddress.getZoneName() + ", " + shippingAddress.getCountryName());
         shipping_street.setText(shippingAddress.getStreet());
 
         // Set Billing Details
-        billing_name.setText(billingAddress.getFirstname()+" "+billingAddress.getLastname());
-        billing_address.setText(billingAddress.getZoneName()+", "+billingAddress.getCountryName());
+        billing_name.setText(billingAddress.getFirstname() + " " + billingAddress.getLastname());
+        billing_address.setText(billingAddress.getZoneName() + ", " + billingAddress.getCountryName());
         billing_street.setText(billingAddress.getStreet());
 
 
@@ -329,9 +325,8 @@ public class Checkout extends Fragment {
         payment_method.setText(selectedPaymentMethod);
 
         payment_method.setClickable(false);
-    
-    
-    
+
+
         // Handle the Click event of edit_payment_method_Btn
 //        payment_method.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -432,33 +427,37 @@ public class Checkout extends Fragment {
 //            }
 //        });
 //
-        
+
         // Integrate SupportedCardTypes with TextChangedListener of checkout_card_number
         checkout_card_number.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (!checkout_card_number.getText().toString().trim().isEmpty()) {
                     CardType type = CardType.forCardNumber(checkout_card_number.getText().toString());
                     if (cardType != type) {
                         cardType = type;
-                    
-                        InputFilter[] filters = { new InputFilter.LengthFilter(cardType.getMaxCardLength()) };
+
+                        InputFilter[] filters = {new InputFilter.LengthFilter(cardType.getMaxCardLength())};
                         checkout_card_number.setFilters(filters);
                         checkout_card_number.invalidate();
-                    
+
                         braintreeSupportedCards.setSelected(cardType);
                     }
                 } else {
                     braintreeSupportedCards.setSupportedCardTypes(SUPPORTED_CARD_TYPES);
                 }
             }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
-        
-        
+
+
         // Handle Touch event of input_dob EditText
         checkout_card_expiry.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -509,32 +508,30 @@ public class Checkout extends Fragment {
         checkout_paypal_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                
+
                 if (selectedPaymentMethod.equalsIgnoreCase("paypal")) {
                     // Process Payment using Braintree PayPal
                     PayPal.authorizeAccount(braintreeFragment);
-                }
-                else if (selectedPaymentMethod.equalsIgnoreCase("simplePaypal")) {
+                } else if (selectedPaymentMethod.equalsIgnoreCase("simplePaypal")) {
                     // Process Payment using PayPal
                     PayPalPayment payment = new PayPalPayment
-                        (
-                            new BigDecimal(String.valueOf(checkoutTotal)),
-                            PAYMENT_CURRENCY,
-                            ConstantValues.APP_HEADER,
-                            PayPalPayment.PAYMENT_INTENT_SALE
-                        );
-    
+                            (
+                                    new BigDecimal(String.valueOf(checkoutTotal)),
+                                    PAYMENT_CURRENCY,
+                                    ConstantValues.APP_HEADER,
+                                    PayPalPayment.PAYMENT_INTENT_SALE
+                            );
+
                     Intent intent = new Intent(getContext(), PaymentActivity.class);
-    
+
                     // send the same configuration for restart resiliency
                     intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, payPalConfiguration);
                     intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payment);
-    
+
                     startActivityForResult(intent, SIMPLE_PAYPAL_REQUEST_CODE);
                 }
             }
         });
-
 
 
         // Handle the Click event of edit_billing_Btn Button
@@ -589,23 +586,21 @@ public class Checkout extends Fragment {
                         .addToBackStack(null).commit();
             }
         });
-    
-        
+
 
         if (!ConstantValues.IS_CLIENT_ACTIVE) {
             setupDemoCoupons();
-        }
-        else {
+        } else {
             demo_coupons_text.setVisibility(View.GONE);
         }
-        
+
 
         // Handle the Click event of checkout_coupon_btn Button
         checkout_coupon_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!checkout_coupon_code.getText().toString().isEmpty()) {
-                    Log.e("Coupon code:",checkout_coupon_code.getText().toString());
+                    Log.e("Coupon code:", checkout_coupon_code.getText().toString());
                     GetCouponInfo(checkout_coupon_code.getText().toString());
                     dialogLoader.showProgressDialog();
                 }
@@ -630,10 +625,10 @@ public class Checkout extends Fragment {
             @Override
             public void onClick(final View view) {
 
-                ResDetails resDetails=new ResDetails();
-                resDetails=restaurant_status_db.getUserData("1");
-                String opentime=resDetails.getOpen_time();
-                String closetime=resDetails.getClose_time();
+                ResDetails resDetails = new ResDetails();
+                resDetails = restaurant_status_db.getUserData("1");
+                String opentime = resDetails.getOpen_time();
+                String closetime = resDetails.getClose_time();
 
                 Date mToday = new Date();
 
@@ -644,8 +639,8 @@ public class Checkout extends Fragment {
                     Calendar calendar = Calendar.getInstance();
 
                     SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
-                    String  currentTime = df.format(calendar.getTime());
-                    Log.e("Current Time1:",currentTime);
+                    String currentTime = df.format(calendar.getTime());
+                    Log.e("Current Time1:", currentTime);
 
                     Calendar calendarcurrent = Calendar.getInstance();
                     Date dcur = new SimpleDateFormat("HH:mm:ss").parse(currentTime);
@@ -675,8 +670,7 @@ public class Checkout extends Fragment {
 
                             // Check if the selectedPaymentMethod is not "PayPal" or "Braintree PayPal"
                             if (!selectedPaymentMethod.equalsIgnoreCase("paypal")
-                                    &&  !selectedPaymentMethod.equalsIgnoreCase("simplePaypal"))
-                            {
+                                    && !selectedPaymentMethod.equalsIgnoreCase("simplePaypal")) {
 
                                 if (validatePaymentCard()) {
                                     // Setup Payment Method
@@ -698,8 +692,7 @@ public class Checkout extends Fragment {
                                     }, 2000);
                                 }
 
-                            }
-                            else {
+                            } else {
                                 // Setup Payment Method
                                 validateSelectedPaymentMethod();
                                 progressDialog.show();
@@ -711,24 +704,22 @@ public class Checkout extends Fragment {
                                         if (!"".equalsIgnoreCase(paymentNonceToken)) {
                                             // Proceed Order
                                             proceedOrder();
-                                        }
-                                        else {
+                                        } else {
                                             progressDialog.dismiss();
                                             Snackbar.make(view, getString(R.string.invalid_payment_token), Snackbar.LENGTH_SHORT).show();
                                         }
                                     }
                                 }, 2000);
                             }
-                        }
-                        else {
+                        } else {
                             // Proceed Order
                             proceedOrder();
                             progressDialog.show();
                         }
 
-                    }else{
+                    } else {
                         //Log.e("Restaurant Status:", data);
-                        Toast.makeText(getContext(),"Restaurant is Closed",Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Restaurant is Closed", Toast.LENGTH_LONG).show();
                         Fragment fragment = new Close_Fragment();
                         FragmentManager fragmentManager = getFragmentManager();
                         fragmentManager.beginTransaction()
@@ -748,53 +739,47 @@ public class Checkout extends Fragment {
 
         return rootView;
     }
-    
-    
-    
+
+
     //*********** Called when the fragment is no longer in use ********//
-    
+
     @Override
     public void onDestroy() {
         getContext().stopService(new Intent(getContext(), PayPalService.class));
         super.onDestroy();
     }
-    
-    
-    
+
+
     //*********** Receives the result from a previous call of startActivityForResult(Intent, int) ********//
-    
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
-            
+
             if (requestCode == BraintreeRequestCodes.PAYPAL) {
                 DropInResult result = data.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
-                
+
                 // use the result to update your UI and send the payment method nonce to your server
                 if (!result.getPaymentMethodNonce().getNonce().isEmpty()) {
                     selectedPaymentMethod = "paypal";
                     paymentNonceToken = result.getPaymentMethodNonce().getNonce();
                 }
-                
-            }
-            else if (requestCode == SIMPLE_PAYPAL_REQUEST_CODE) {
+
+            } else if (requestCode == SIMPLE_PAYPAL_REQUEST_CODE) {
                 PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
-                
+
                 if (confirm != null) {
                     selectedPaymentMethod = "simplePaypal";
                     paymentNonceToken = confirm.getProofOfPayment().getPaymentId();
                 }
             }
-        }
-        else if (resultCode == Activity.RESULT_CANCELED) {
+        } else if (resultCode == Activity.RESULT_CANCELED) {
             Log.i("paypal", "The user canceled.");
-        }
-        else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
+        } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
             Log.i("paypal", "An invalid Payment or PayPalConfiguration was submitted. Please see the docs.");
         }
     }
-    
 
 
     //*********** Validate Payment method Details according to the selectedPaymentMethod ********//
@@ -842,17 +827,13 @@ public class Checkout extends Fragment {
                         // Check if there is an Issue with the Credit Card
                         if (cardNumberError != null) {
                             checkout_card_number.setError(cardNumberError.getMessage());
-                        }
-                        else if (expirationMonthError != null) {
+                        } else if (expirationMonthError != null) {
                             checkout_card_expiry.setError(expirationMonthError.getMessage());
-                        }
-                        else if (expirationYearError != null) {
+                        } else if (expirationYearError != null) {
                             checkout_card_expiry.setError(expirationYearError.getMessage());
-                        }
-                        else if (cardCVVErrors != null) {
+                        } else if (cardCVVErrors != null) {
                             checkout_card_cvv.setError(cardCVVErrors.getMessage());
-                        }
-                        else {
+                        } else {
                             Toast.makeText(getContext(), errorWithResponse.toString(), Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -863,13 +844,15 @@ public class Checkout extends Fragment {
             // Add ConfigurationListener to BraintreeFragment
             braintreeFragment.addListener(new ConfigurationListener() {
                 @Override
-                public void onConfigurationFetched(Configuration configuration) {}
+                public void onConfigurationFetched(Configuration configuration) {
+                }
             });
 
             // Add BraintreeCancelListener to BraintreeFragment
             braintreeFragment.addListener(new BraintreeCancelListener() {
                 @Override
-                public void onCancel(int requestCode) {}
+                public void onCancel(int requestCode) {
+                }
             });
 
 
@@ -952,7 +935,7 @@ public class Checkout extends Fragment {
                     selectedPaymentMethod = "paypal";
                 }
             });
-    
+
             // Add BraintreeErrorListener to BraintreeFragment
             braintreeFragment.addListener(new BraintreeErrorListener() {
                 @Override
@@ -964,24 +947,25 @@ public class Checkout extends Fragment {
             // Add BraintreeCancelListener to BraintreeFragment
             braintreeFragment.addListener(new BraintreeCancelListener() {
                 @Override
-                public void onCancel(int requestCode) {}
+                public void onCancel(int requestCode) {
+                }
             });
 
         }
         // Check if the selectedPaymentMethod is Braintree's PayPal
         else if (selectedPaymentMethod.equalsIgnoreCase("simplePaypal")) {
-    
+
             // Add PaymentMethodNonceCreatedListener to BraintreeFragment
             braintreeFragment.addListener(new PaymentMethodNonceCreatedListener() {
                 @Override
                 public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
-            
+
                     // Get Payment Nonce
                     paymentNonceToken = paymentMethodNonce.getNonce();
                     selectedPaymentMethod = "simplePaypal";
                 }
             });
-    
+
             // Add BraintreeErrorListener to BraintreeFragment
             braintreeFragment.addListener(new BraintreeErrorListener() {
                 @Override
@@ -989,15 +973,15 @@ public class Checkout extends Fragment {
                     Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
-    
+
             // Add BraintreeCancelListener to BraintreeFragment
             braintreeFragment.addListener(new BraintreeCancelListener() {
                 @Override
-                public void onCancel(int requestCode) {}
+                public void onCancel(int requestCode) {
+                }
             });
-    
-        }
-        else {
+
+        } else {
             return;
         }
     }
@@ -1009,14 +993,13 @@ public class Checkout extends Fragment {
 
         double finalPrice = 0;
 
-        for (int i=0;  i<checkoutItemsList.size();  i++) {
+        for (int i = 0; i < checkoutItemsList.size(); i++) {
             // Add the Price of each Cart Product to finalPrice
             finalPrice += Double.parseDouble(checkoutItemsList.get(i).getCustomersBasketProduct().getTotalPrice());
         }
 
         return finalPrice;
     }
-
 
 
     //*********** Set Checkout's Subtotal, Tax, ShippingCost, Discount and Total Prices ********//
@@ -1027,22 +1010,22 @@ public class Checkout extends Fragment {
         checkoutSubtotal = getProductsSubTotal();
         // Calculate Checkout Total
         checkoutTotal = checkoutSubtotal + checkoutTax + checkoutShipping - checkoutDiscount;
-    
-        checkoutTax = (double) Math.round(checkoutTax * 100) / 100;
-        checkoutShipping = (double) Math.round(checkoutShipping * 100) / 100 ;
-        checkoutDiscount = (double) Math.round(checkoutDiscount * 100) / 100 ;
-        checkoutSubtotal = (double) Math.round(checkoutSubtotal * 100) / 100 ;
-        checkoutTotal = (double) Math.round(checkoutTotal * 100) / 100;
-        gross=Math.round(checkoutTotal);
 
-        round=gross-checkoutTotal;
+        checkoutTax = (double) Math.round(checkoutTax * 100) / 100;
+        checkoutShipping = (double) Math.round(checkoutShipping * 100) / 100;
+        checkoutDiscount = (double) Math.round(checkoutDiscount * 100) / 100;
+        checkoutSubtotal = (double) Math.round(checkoutSubtotal * 100) / 100;
+        checkoutTotal = (double) Math.round(checkoutTotal * 100) / 100;
+        gross = Math.round(checkoutTotal);
+
+        round = gross - checkoutTotal;
 
         DecimalFormat two = new DecimalFormat("0.00");
-        String Round=two.format(round);
+        String Round = two.format(round);
 
-       // Round=String.valueOf(round);
+        // Round=String.valueOf(round);
 
-       // roundoff1=Math.abs(round);
+        // roundoff1=Math.abs(round);
 
 //    if(Round.contains("-")){
 //
@@ -1054,7 +1037,7 @@ public class Checkout extends Fragment {
         checkout_tax.setText(ConstantValues.CURRENCY_SYMBOL + String.valueOf(checkoutTax));
         checkout_shipping.setText(ConstantValues.CURRENCY_SYMBOL + String.valueOf(checkoutShipping));
         checkout_discount.setText(ConstantValues.CURRENCY_SYMBOL + String.valueOf(checkoutDiscount));
-        
+
         checkout_total.setText(ConstantValues.CURRENCY_SYMBOL + gross);
         grossvalue.setText(ConstantValues.CURRENCY_SYMBOL + String.valueOf(checkoutTotal));
         roundoff.setText(ConstantValues.CURRENCY_SYMBOL + String.valueOf(Round));
@@ -1063,18 +1046,17 @@ public class Checkout extends Fragment {
     }
 
 
-
     //*********** Set Order Details to proceed Checkout ********//
 
     private void proceedOrder() {
 
         PostOrder orderDetails = new PostOrder();
         List<PostProducts> orderProductList = new ArrayList<>();
-    
-        for (int i=0;  i<checkoutItemsList.size();  i++) {
-        
+
+        for (int i = 0; i < checkoutItemsList.size(); i++) {
+
             PostProducts orderProduct = new PostProducts();
-        
+
             // Get current Product Details
             orderProduct.setProductsId(checkoutItemsList.get(i).getCustomersBasketProduct().getProductsId());
             orderProduct.setProductsName(checkoutItemsList.get(i).getCustomersBasketProduct().getProductsName());
@@ -1090,17 +1072,17 @@ public class Checkout extends Fragment {
             orderProduct.setSubtotal(checkoutItemsList.get(i).getCustomersBasketProduct().getTotalPrice());
             orderProduct.setTotal(checkoutItemsList.get(i).getCustomersBasketProduct().getTotalPrice());
             orderProduct.setCustomersBasketQuantity(checkoutItemsList.get(i).getCustomersBasketProduct().getCustomersBasketQuantity());
-        
+
             orderProduct.setOnSale(checkoutItemsList.get(i).getCustomersBasketProduct().getIsSaleProduct().equalsIgnoreCase("1"));
-    
-            
+
+
             List<PostProductsAttributes> productAttributes = new ArrayList<>();
-            
-            for (int j=0;  j<checkoutItemsList.get(i).getCustomersBasketProductAttributes().size();  j++) {
+
+            for (int j = 0; j < checkoutItemsList.get(i).getCustomersBasketProductAttributes().size(); j++) {
                 CartProductAttributes cartProductAttributes = checkoutItemsList.get(i).getCustomersBasketProductAttributes().get(j);
                 Option attributeOption = cartProductAttributes.getOption();
                 Value attributeValue = cartProductAttributes.getValues().get(0);
-    
+
                 PostProductsAttributes attribute = new PostProductsAttributes();
                 attribute.setProductsOptionsId(String.valueOf(attributeOption.getId()));
                 attribute.setProductsOptions(attributeOption.getName());
@@ -1108,25 +1090,25 @@ public class Checkout extends Fragment {
                 attribute.setProductsOptionsValues(attributeValue.getValue());
                 attribute.setOptionsValuesPrice(attributeValue.getPrice());
                 attribute.setPricePrefix(attributeValue.getPricePrefix());
-                attribute.setAttributeName(attributeValue.getValue()+" "+attributeValue.getPricePrefix()+attributeValue.getPrice());
-    
+                attribute.setAttributeName(attributeValue.getValue() + " " + attributeValue.getPricePrefix() + attributeValue.getPrice());
+
                 productAttributes.add(attribute);
             }
-    
+
             orderProduct.setAttributes(productAttributes);
-        
-        
+
+
             // Add current Product to orderProductList
             orderProductList.add(orderProduct);
         }
-    
-    
+
+
         // Set Customer Info
         orderDetails.setCustomersId(Integer.parseInt(userInfo.getCustomersId()));
         orderDetails.setCustomersName(userInfo.getCustomersFirstname());
         orderDetails.setCustomersTelephone(userInfo.getCustomersTelephone());
         orderDetails.setCustomersEmailAddress(userInfo.getCustomersEmailAddress());
-    
+
         // Set Shipping  Info
         orderDetails.setDeliveryFirstname(shippingAddress.getFirstname());
         orderDetails.setDeliveryLastname(shippingAddress.getLastname());
@@ -1140,7 +1122,7 @@ public class Checkout extends Fragment {
         orderDetails.setDeliveryCountry(shippingAddress.getCountryName());
         orderDetails.setDeliveryZoneId(String.valueOf(shippingAddress.getZoneId()));
         orderDetails.setDeliveryCountryId(String.valueOf(shippingAddress.getCountriesId()));
-    
+
         // Set Billing Info
         orderDetails.setBillingFirstname(billingAddress.getFirstname());
         orderDetails.setBillingLastname(billingAddress.getLastname());
@@ -1154,15 +1136,15 @@ public class Checkout extends Fragment {
         orderDetails.setBillingCountry(billingAddress.getCountryName());
         orderDetails.setBillingZoneId(String.valueOf(billingAddress.getZoneId()));
         orderDetails.setBillingCountryId(String.valueOf(billingAddress.getCountriesId()));
-    
+
         orderDetails.setTaxZoneId(shippingAddress.getZoneId());
         orderDetails.setTotalTax(checkoutTax);
         orderDetails.setShippingCost(checkoutShipping);
-       // orderDetails.setShippingMethod(shippingMethod.getName() + " ("+ shippingMethod.getShippingMethod() +")");
+        // orderDetails.setShippingMethod(shippingMethod.getName() + " ("+ shippingMethod.getShippingMethod() +")");
         orderDetails.setShippingMethod(shippingMethod.getName());
 
         orderDetails.setComments(checkout_comments.getText().toString().trim());
-    
+
         if (couponsList.size() > 0) {
             orderDetails.setIsCouponApplied(1);
         } else {
@@ -1170,21 +1152,20 @@ public class Checkout extends Fragment {
         }
         orderDetails.setCouponAmount(checkoutDiscount);
         orderDetails.setCoupons(couponsList);
-    
+
         // Set PaymentNonceToken and PaymentMethod
         orderDetails.setNonce(paymentNonceToken);
         orderDetails.setPaymentMethod(selectedPaymentMethod);
-    
+
         // Set Checkout Price and Products
         orderDetails.setProductsTotal(checkoutSubtotal);
         orderDetails.setTotalPrice(gross);
         orderDetails.setProducts(orderProductList);
-        
-        
-        PlaceOrderNow(orderDetails);
-        
-    }
 
+
+        PlaceOrderNow(orderDetails);
+
+    }
 
 
     //*********** Request the Server to Generate BrainTreeToken ********//
@@ -1204,69 +1185,62 @@ public class Checkout extends Fragment {
                 if (response.isSuccessful()) {
                     if (response.body().getSuccess().equalsIgnoreCase("1")) {
 
-                        for (int i=0;  i<response.body().getData().size();  i++) {
+                        for (int i = 0; i < response.body().getData().size(); i++) {
 
                             PaymentMethodsInfo paymentMethodsInfo = response.body().getData().get(i);
-                            
+
                             if (paymentMethodsInfo.getName().equalsIgnoreCase("Cash On Delivery")
-                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1"))
-                            {
+                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1")) {
                                 paymentMethodsList.add("Cash On Delivery");
                             }
-                            
-                            
+
+
                             if (paymentMethodsInfo.getName().equalsIgnoreCase("Paypal")
-                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1"))
-                            {
+                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1")) {
                                 paymentMethodsList.add("PayPal");
                                 PAYMENT_CURRENCY = paymentMethodsInfo.getPaymentCurrency();
                                 PAYPAL_PUBLISHABLE_KEY = paymentMethodsInfo.getPublicKey();
-    
+
                                 payPalConfiguration = new PayPalConfiguration()
-                                    // sandbox (ENVIRONMENT_SANDBOX)
-                                    // or live (ENVIRONMENT_PRODUCTION)
-                                    .environment(PayPalConfiguration.ENVIRONMENT_NO_NETWORK)
-                                    .clientId(PAYPAL_PUBLISHABLE_KEY);
-    
+                                        // sandbox (ENVIRONMENT_SANDBOX)
+                                        // or live (ENVIRONMENT_PRODUCTION)
+                                        .environment(PayPalConfiguration.ENVIRONMENT_NO_NETWORK)
+                                        .clientId(PAYPAL_PUBLISHABLE_KEY);
+
                                 Intent intent = new Intent(getContext(), PayPalService.class);
                                 intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, payPalConfiguration);
-    
+
                                 getContext().startService(intent);
                             }
-                            
+
 
                             if (paymentMethodsInfo.getName().equalsIgnoreCase("Stripe")
-                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1"))
-                            {
+                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1")) {
                                 paymentMethodsList.add("Stripe Credit Card");
                                 STRIPE_PUBLISHABLE_KEY = paymentMethodsInfo.getPublicKey();
                             }
 
 
                             if (paymentMethodsInfo.getName().equalsIgnoreCase("Braintree")
-                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1"))
-                            {
+                                    && paymentMethodsInfo.getActive().equalsIgnoreCase("1")) {
                                 paymentMethodsList.add("Braintree Credit Card");
                                 paymentMethodsList.add("Braintree PayPal");
 
                                 GenerateBrainTreeToken();
 
-                            }
-                            else {
+                            } else {
                                 dialogLoader.hideProgressDialog();
                             }
 
                         }
 
-                    }
-                    else {
+                    } else {
                         // Unexpected Response from Server
                         dialogLoader.hideProgressDialog();
                         Snackbar.make(rootView, getString(R.string.cannot_get_payment_methods), Snackbar.LENGTH_LONG).show();
                         Toast.makeText(getContext(), getString(R.string.cannot_get_payment_methods), Toast.LENGTH_SHORT).show();
                     }
-                }
-                else {
+                } else {
                     dialogLoader.hideProgressDialog();
                     Toast.makeText(getContext(), getString(R.string.cannot_get_payment_methods), Toast.LENGTH_SHORT).show();
                 }
@@ -1275,13 +1249,12 @@ public class Checkout extends Fragment {
             @Override
             public void onFailure(Call<PaymentMethodsData> call, Throwable t) {
                 dialogLoader.hideProgressDialog();
-                Toast.makeText(getContext(), "NetworkCallFailure : "+t, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "NetworkCallFailure : " + t, Toast.LENGTH_LONG).show();
             }
         });
     }
 
 
-    
     //*********** Request the Server to Generate BrainTreeToken ********//
 
     private void GenerateBrainTreeToken() {
@@ -1309,12 +1282,10 @@ public class Checkout extends Fragment {
                             e.printStackTrace();
                         }
 
-                    }
-                    else {
+                    } else {
                         Snackbar.make(rootView, getString(R.string.cannot_initialize_braintree), Snackbar.LENGTH_LONG).show();
                     }
-                }
-                else {
+                } else {
                     Toast.makeText(getContext(), getString(R.string.cannot_initialize_braintree), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -1322,13 +1293,12 @@ public class Checkout extends Fragment {
             @Override
             public void onFailure(Call<GetBrainTreeToken> call, Throwable t) {
                 dialogLoader.hideProgressDialog();
-                Toast.makeText(getContext(), "NetworkCallFailure : "+t, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "NetworkCallFailure : " + t, Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    
-    
+
     //*********** Request the Server to Generate BrainTreeToken ********//
 
     private void GetCouponInfo(String coupon_code) {
@@ -1353,55 +1323,48 @@ public class Checkout extends Fragment {
 
                         final CouponsInfo couponsInfo = response.body().getData().get(0);
 
-                        
-                        if (couponsList.size() !=0 && couponsInfo.getIndividualUse().equalsIgnoreCase("1")) {
-                            
+
+                        if (couponsList.size() != 0 && couponsInfo.getIndividualUse().equalsIgnoreCase("1")) {
+
                             AlertDialog.Builder dialog = new AlertDialog.Builder(getContext());
-                            
+
                             dialog.setTitle(getString(R.string.add_coupon));
                             dialog.setMessage(getString(R.string.coupon_removes_other_coupons));
-                            
+
                             dialog.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
-    
+
                                     if (couponsInfo.getDiscountType().equalsIgnoreCase("fixed_cart")
-                                            || couponsInfo.getDiscountType().equalsIgnoreCase("percent"))
-                                    {
+                                            || couponsInfo.getDiscountType().equalsIgnoreCase("percent")) {
                                         if (validateCouponCart(couponsInfo))
-                                                applyCoupon(couponsInfo);
-                                        
-                                    }
-                                    else if (couponsInfo.getDiscountType().equalsIgnoreCase("fixed_product")
-                                            || couponsInfo.getDiscountType().equalsIgnoreCase("percent_product"))
-                                    {
+                                            applyCoupon(couponsInfo);
+
+                                    } else if (couponsInfo.getDiscountType().equalsIgnoreCase("fixed_product")
+                                            || couponsInfo.getDiscountType().equalsIgnoreCase("percent_product")) {
                                         if (validateCouponProduct(couponsInfo))
                                             applyCoupon(couponsInfo);
                                     }
                                 }
                             });
-                            
+
                             dialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                     dialog.dismiss();
                                 }
                             });
                             dialog.show();
-                            
-                        }
-                        else {
+
+                        } else {
 
                             if (couponsInfo.getDiscountType().equalsIgnoreCase("fixed_cart")
-                                    || couponsInfo.getDiscountType().equalsIgnoreCase("percent"))
-                            {
-                                Log.e("Coupon Details:",couponsInfo.getDiscountType().toString());
+                                    || couponsInfo.getDiscountType().equalsIgnoreCase("percent")) {
+                                Log.e("Coupon Details:", couponsInfo.getDiscountType().toString());
 
                                 if (validateCouponCart(couponsInfo))
                                     applyCoupon(couponsInfo);
-                                
-                            }
-                            else if (couponsInfo.getDiscountType().equalsIgnoreCase("fixed_product")
-                                    || couponsInfo.getDiscountType().equalsIgnoreCase("percent_product"))
-                            {
+
+                            } else if (couponsInfo.getDiscountType().equalsIgnoreCase("fixed_product")
+                                    || couponsInfo.getDiscountType().equalsIgnoreCase("percent_product")) {
                                 if (validateCouponProduct(couponsInfo))
                                     applyCoupon(couponsInfo);
                             }
@@ -1414,20 +1377,18 @@ public class Checkout extends Fragment {
                         // Unexpected Response from Server
                         Toast.makeText(getContext(), getString(R.string.unexpected_response), Toast.LENGTH_SHORT).show();
                     }
-                }
-                else {
-                    Toast.makeText(getContext(), ""+response.message(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "" + response.message(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<CouponsData> call, Throwable t) {
                 dialogLoader.hideProgressDialog();
-                Toast.makeText(getContext(), "NetworkCallFailure : "+t, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "NetworkCallFailure : " + t, Toast.LENGTH_LONG).show();
             }
         });
     }
-
 
 
     //*********** Request the Server to Place User's Order ********//
@@ -1461,7 +1422,7 @@ public class Checkout extends Fragment {
                         ((App) getContext().getApplicationContext()).setShippingAddress(new AddressDetails());
                         ((App) getContext().getApplicationContext()).setBillingAddress(new AddressDetails());
 
-                        
+
                         // Navigate to Thank_You Fragment
                         Fragment fragment = new Thank_You();
                         FragmentManager fragmentManager = getFragmentManager();
@@ -1471,17 +1432,14 @@ public class Checkout extends Fragment {
                                 .commit();
 
 
-                    }
-                    else if (response.body().getSuccess().equalsIgnoreCase("0")) {
+                    } else if (response.body().getSuccess().equalsIgnoreCase("0")) {
                         Snackbar.make(rootView, response.body().getMessage(), Snackbar.LENGTH_LONG).show();
-    
-                    }
-                    else {
+
+                    } else {
                         // Unable to get Success status
                         Snackbar.make(rootView, getString(R.string.unexpected_response), Snackbar.LENGTH_SHORT).show();
                     }
-                }
-                else {
+                } else {
                     Toast.makeText(getContext(), response.message(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -1489,17 +1447,16 @@ public class Checkout extends Fragment {
             @Override
             public void onFailure(Call<OrderData> call, Throwable t) {
                 progressDialog.dismiss();
-                Toast.makeText(getContext(), "NetworkCallFailure : "+t, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "NetworkCallFailure : " + t, Toast.LENGTH_LONG).show();
             }
         });
     }
-    
-    
-    
+
+
     //*********** Apply given Coupon to checkout ********//
-    
+
     public void applyCoupon(CouponsInfo coupon) {
-    
+
         if (coupon.getIndividualUse().equalsIgnoreCase("1")) {
             couponsList.clear();
             checkoutDiscount = 0.0;
@@ -1507,61 +1464,58 @@ public class Checkout extends Fragment {
             disableOtherCoupons = true;
             setCheckoutTotal();
         }
-        
+
         if (coupon.getFreeShipping().equalsIgnoreCase("1")) {
             checkoutShipping = 0.0;
         }
-    
-    
+
+
         double discount = 0.0;
-    
+
         if (coupon.getDiscountType().equalsIgnoreCase("fixed_cart")) {
             discount = Double.parseDouble(coupon.getAmount());
-            
-        }
-        else if (coupon.getDiscountType().equalsIgnoreCase("percent")) {
+
+        } else if (coupon.getDiscountType().equalsIgnoreCase("percent")) {
             discount = (checkoutSubtotal * Double.parseDouble(coupon.getAmount())) / 100;
-            
-        }
-        else if (coupon.getDiscountType().equalsIgnoreCase("fixed_product")) {
-            
-            for (int i=0;  i<checkoutItemsList.size();  i++) {
-                
+
+        } else if (coupon.getDiscountType().equalsIgnoreCase("fixed_product")) {
+
+            for (int i = 0; i < checkoutItemsList.size(); i++) {
+
                 int productID = checkoutItemsList.get(i).getCustomersBasketProduct().getProductsId();
                 int categoryID = checkoutItemsList.get(i).getCustomersBasketProduct().getCategoriesId();
-                
-    
-                if (!checkoutItemsList.get(i).getCustomersBasketProduct().getIsSaleProduct().equalsIgnoreCase("1")  ||  !coupon.getExcludeSaleItems().equalsIgnoreCase("1")) {
-                    if (!isStringExistsInList(String.valueOf(categoryID), coupon.getExcludedProductCategories())  ||  coupon.getExcludedProductCategories().size() == 0 ) {
-                        if (!isStringExistsInList(String.valueOf(productID), coupon.getExcludeProductIds())  ||  coupon.getExcludeProductIds().size() == 0 ) {
-                            if (isStringExistsInList(String.valueOf(categoryID), coupon.getProductCategories())  ||  coupon.getProductCategories().size() == 0 ) {
-                                if (isStringExistsInList(String.valueOf(productID), coupon.getProductIds())  ||  coupon.getProductIds().size() == 0 ) {
-                                    
+
+
+                if (!checkoutItemsList.get(i).getCustomersBasketProduct().getIsSaleProduct().equalsIgnoreCase("1") || !coupon.getExcludeSaleItems().equalsIgnoreCase("1")) {
+                    if (!isStringExistsInList(String.valueOf(categoryID), coupon.getExcludedProductCategories()) || coupon.getExcludedProductCategories().size() == 0) {
+                        if (!isStringExistsInList(String.valueOf(productID), coupon.getExcludeProductIds()) || coupon.getExcludeProductIds().size() == 0) {
+                            if (isStringExistsInList(String.valueOf(categoryID), coupon.getProductCategories()) || coupon.getProductCategories().size() == 0) {
+                                if (isStringExistsInList(String.valueOf(productID), coupon.getProductIds()) || coupon.getProductIds().size() == 0) {
+
                                     discount += (Double.parseDouble(coupon.getAmount()) * checkoutItemsList.get(i).getCustomersBasketProduct().getCustomersBasketQuantity());
                                 }
                             }
                         }
                     }
                 }
-    
-                
+
+
             }
-            
-        }
-        else if (coupon.getDiscountType().equalsIgnoreCase("percent_product")) {
-            
-            for (int i=0;  i<checkoutItemsList.size();  i++) {
-        
+
+        } else if (coupon.getDiscountType().equalsIgnoreCase("percent_product")) {
+
+            for (int i = 0; i < checkoutItemsList.size(); i++) {
+
                 int productID = checkoutItemsList.get(i).getCustomersBasketProduct().getProductsId();
                 int categoryID = checkoutItemsList.get(i).getCustomersBasketProduct().getCategoriesId();
-    
-    
-                if (!checkoutItemsList.get(i).getCustomersBasketProduct().getIsSaleProduct().equalsIgnoreCase("1")  ||  !coupon.getExcludeSaleItems().equalsIgnoreCase("1")) {
-                    if (!isStringExistsInList(String.valueOf(categoryID), coupon.getExcludedProductCategories())  ||  coupon.getExcludedProductCategories().size() == 0 ) {
-                        if (!isStringExistsInList(String.valueOf(productID), coupon.getExcludeProductIds())  ||  coupon.getExcludeProductIds().size() == 0 ) {
-                            if (isStringExistsInList(String.valueOf(categoryID), coupon.getProductCategories())  ||  coupon.getProductCategories().size() == 0 ) {
-                                if (isStringExistsInList(String.valueOf(productID), coupon.getProductIds())  ||  coupon.getProductIds().size() == 0 ) {
-    
+
+
+                if (!checkoutItemsList.get(i).getCustomersBasketProduct().getIsSaleProduct().equalsIgnoreCase("1") || !coupon.getExcludeSaleItems().equalsIgnoreCase("1")) {
+                    if (!isStringExistsInList(String.valueOf(categoryID), coupon.getExcludedProductCategories()) || coupon.getExcludedProductCategories().size() == 0) {
+                        if (!isStringExistsInList(String.valueOf(productID), coupon.getExcludeProductIds()) || coupon.getExcludeProductIds().size() == 0) {
+                            if (isStringExistsInList(String.valueOf(categoryID), coupon.getProductCategories()) || coupon.getProductCategories().size() == 0) {
+                                if (isStringExistsInList(String.valueOf(productID), coupon.getProductIds()) || coupon.getProductIds().size() == 0) {
+
                                     double discountOnPrice = (Double.parseDouble(checkoutItemsList.get(i).getCustomersBasketProduct().getProductsFinalPrice()) * Double.parseDouble(coupon.getAmount())) / 100;
                                     discount += (discountOnPrice * checkoutItemsList.get(i).getCustomersBasketProduct().getCustomersBasketQuantity());
                                 }
@@ -1569,129 +1523,125 @@ public class Checkout extends Fragment {
                         }
                     }
                 }
-        
+
             }
         }
-    
+
         checkoutDiscount += discount;
         coupon.setDiscount(String.valueOf(discount));
-        
-        
+
+
         couponsList.add(coupon);
         checkout_coupon_code.setText("");
         couponsAdapter.notifyDataSetChanged();
-        
-        
+
+
         setCheckoutTotal();
 
     }
-    
-    
-    
+
+
     //*********** Remove given Coupon from checkout ********//
-    
+
     public void removeCoupon(CouponsInfo coupon) {
-        
+
         if (coupon.getIndividualUse().equalsIgnoreCase("1")) {
             disableOtherCoupons = false;
         }
-    
-    
-        for (int i=0;  i<couponsList.size();  i++) {
+
+
+        for (int i = 0; i < couponsList.size(); i++) {
             if (coupon.getCode().equalsIgnoreCase(couponsList.get(i).getCode())) {
                 couponsList.remove(i);
                 couponsAdapter.notifyDataSetChanged();
             }
         }
-    
-        
+
+
         checkoutShipping = checkoutShippingCost;
-    
-        for (int i=0;  i<couponsList.size();  i++) {
+
+        for (int i = 0; i < couponsList.size(); i++) {
             if (couponsList.get(i).getFreeShipping().equalsIgnoreCase("1")) {
                 checkoutShipping = 0.0;
             }
         }
-    
-    
+
+
         double discount = Double.parseDouble(coupon.getDiscount());
         checkoutDiscount -= discount;
-        
-    
+
+
         setCheckoutTotal();
 
     }
-    
-    
-    
+
+
     //*********** Validate Cart type Coupon ********//
-    
+
     private boolean validateCouponCart(CouponsInfo coupon) {
-    
+
         int user_used_this_coupon_counter = 0;
-        
+
         boolean coupon_already_applied = false;
-        
+
         boolean valid_user_email_for_coupon = false;
         boolean valid_sale_items_in_for_coupon = true;
-        
+
         boolean valid_items_in_cart = false;
         boolean valid_category_items_in_cart = false;
-        
+
         boolean no_excluded_item_in_cart = true;
         boolean no_excluded_category_item_in_cart = true;
-        
-        
+
+
         if (couponsList.size() != 0) {
-            for (int i=0;  i<couponsList.size();  i++) {
+            for (int i = 0; i < couponsList.size(); i++) {
                 if (coupon.getCode().equalsIgnoreCase(couponsList.get(i).getCode())) {
                     coupon_already_applied = true;
                 }
             }
         }
-        
-        
-        for (int i=0;  i<coupon.getUsedBy().size();  i++) {
+
+
+        for (int i = 0; i < coupon.getUsedBy().size(); i++) {
             if (userInfo.getCustomersId().equalsIgnoreCase(coupon.getUsedBy().get(i))) {
                 user_used_this_coupon_counter += 1;
             }
         }
-    
-        
+
+
         if (coupon.getEmailRestrictions().size() != 0) {
             if (isStringExistsInList(userInfo.getCustomersEmailAddress(), coupon.getEmailRestrictions())) {
                 valid_user_email_for_coupon = true;
             }
-        }
-        else {
+        } else {
             valid_user_email_for_coupon = true;
         }
-        
-    
-    
-        for (int i=0;  i<checkoutItemsList.size();  i++) {
-    
+
+
+        for (int i = 0; i < checkoutItemsList.size(); i++) {
+
             int productID = checkoutItemsList.get(i).getCustomersBasketProduct().getProductsId();
             int categoryID = checkoutItemsList.get(i).getCustomersBasketProduct().getCategoriesId();
-            
-    
+
+
             if (coupon.getExcludeSaleItems().equalsIgnoreCase("1") && checkoutItemsList.get(i).getCustomersBasketProduct().getIsSaleProduct().equalsIgnoreCase("1")) {
                 valid_sale_items_in_for_coupon = false;
             }
-            
-    
+
+
             if (coupon.getExcludedProductCategories().size() != 0) {
                 if (isStringExistsInList(String.valueOf(categoryID), coupon.getExcludedProductCategories())) {
                     no_excluded_category_item_in_cart = false;
                 }
             }
-    
+
             if (coupon.getExcludeProductIds().size() != 0) {
                 if (isStringExistsInList(String.valueOf(productID), coupon.getExcludeProductIds())) {
                     no_excluded_item_in_cart = false;
                 }
             }
-    
+
             if (coupon.getProductCategories().size() != 0) {
                 if (isStringExistsInList(String.valueOf(categoryID), coupon.getProductCategories())) {
                     valid_category_items_in_cart = true;
@@ -1699,8 +1649,8 @@ public class Checkout extends Fragment {
             } else {
                 valid_category_items_in_cart = true;
             }
-    
-            
+
+
             if (coupon.getProductIds().size() != 0) {
                 if (isStringExistsInList(String.valueOf(productID), coupon.getProductIds())) {
                     valid_items_in_cart = true;
@@ -1708,12 +1658,12 @@ public class Checkout extends Fragment {
             } else {
                 valid_items_in_cart = true;
             }
-            
+
         }
-        
-        
+
+
         /////////////////////////////////////////////////////
-        
+
         if (!disableOtherCoupons) {
             if (!coupon_already_applied) {
                 if (!Utilities.checkIsDatePassed(coupon.getExpiryDate())) {
@@ -1721,16 +1671,16 @@ public class Checkout extends Fragment {
                         if (user_used_this_coupon_counter <= Integer.parseInt(coupon.getUsageLimitPerUser())) {
                             if (valid_user_email_for_coupon) {
                                 if (Double.parseDouble(coupon.getMinimumAmount()) <= checkoutTotal) {
-                                    if (Double.parseDouble(coupon.getMaximumAmount()) == 0.0  ||  checkoutTotal <= Double.parseDouble(coupon.getMaximumAmount())) {
-                                        if (Integer.parseInt(coupon.getLimitUsageToXItems()) == 0  ||  checkoutItemsList.size() <= Integer.parseInt(coupon.getLimitUsageToXItems())) {
+                                    if (Double.parseDouble(coupon.getMaximumAmount()) == 0.0 || checkoutTotal <= Double.parseDouble(coupon.getMaximumAmount())) {
+                                        if (Integer.parseInt(coupon.getLimitUsageToXItems()) == 0 || checkoutItemsList.size() <= Integer.parseInt(coupon.getLimitUsageToXItems())) {
                                             if (valid_sale_items_in_for_coupon) {
                                                 if (no_excluded_category_item_in_cart) {
                                                     if (no_excluded_item_in_cart) {
                                                         if (valid_category_items_in_cart) {
                                                             if (valid_items_in_cart) {
-    
+
                                                                 return true;
-    
+
                                                             } else {
                                                                 showSnackBarForCoupon(getString(R.string.coupon_is_not_for_these_products));
                                                                 return false;
@@ -1789,65 +1739,62 @@ public class Checkout extends Fragment {
         }
 
     }
-    
-    
-    
+
+
     //*********** Validate Product type Coupon ********//
-    
+
     private boolean validateCouponProduct(CouponsInfo coupon) {
-        
+
         int user_used_this_coupon_counter = 0;
-        
+
         boolean coupon_already_applied = false;
-        
+
         boolean valid_user_email_for_coupon = false;
         boolean valid_sale_items_in_for_coupon = false;
-        
+
         boolean any_valid_item_in_cart = false;
         boolean any_valid_category_item_in_cart = false;
-        
+
         boolean any_non_excluded_item_in_cart = false;
         boolean any_non_excluded_category_item_in_cart = false;
-        
-        
+
+
         if (couponsList.size() != 0) {
-            for (int i=0;  i<couponsList.size();  i++) {
+            for (int i = 0; i < couponsList.size(); i++) {
                 if (coupon.getCode().equalsIgnoreCase(couponsList.get(i).getCode())) {
                     coupon_already_applied = true;
                 }
             }
         }
-        
-        
-        for (int i=0;  i<coupon.getUsedBy().size();  i++) {
+
+
+        for (int i = 0; i < coupon.getUsedBy().size(); i++) {
             if (userInfo.getCustomersId().equalsIgnoreCase(coupon.getUsedBy().get(i))) {
                 user_used_this_coupon_counter += 1;
             }
         }
-        
-        
+
+
         if (coupon.getEmailRestrictions().size() != 0) {
             if (isStringExistsInList(userInfo.getCustomersEmailAddress(), coupon.getEmailRestrictions())) {
                 valid_user_email_for_coupon = true;
             }
-        }
-        else {
+        } else {
             valid_user_email_for_coupon = true;
         }
-        
-        
-        
-        for (int i=0;  i<checkoutItemsList.size();  i++) {
-            
+
+
+        for (int i = 0; i < checkoutItemsList.size(); i++) {
+
             int productID = checkoutItemsList.get(i).getCustomersBasketProduct().getProductsId();
             int categoryID = checkoutItemsList.get(i).getCustomersBasketProduct().getCategoriesId();
-            
-            
+
+
             if (!coupon.getExcludeSaleItems().equalsIgnoreCase("1") || !checkoutItemsList.get(i).getCustomersBasketProduct().getIsSaleProduct().equalsIgnoreCase("1")) {
                 valid_sale_items_in_for_coupon = true;
             }
-            
-            
+
+
             if (coupon.getExcludedProductCategories().size() != 0) {
                 if (isStringExistsInList(String.valueOf(categoryID), coupon.getExcludedProductCategories())) {
                     any_non_excluded_category_item_in_cart = true;
@@ -1855,7 +1802,7 @@ public class Checkout extends Fragment {
             } else {
                 any_non_excluded_category_item_in_cart = true;
             }
-            
+
             if (coupon.getExcludeProductIds().size() != 0) {
                 if (isStringExistsInList(String.valueOf(productID), coupon.getExcludeProductIds())) {
                     any_non_excluded_item_in_cart = true;
@@ -1863,7 +1810,7 @@ public class Checkout extends Fragment {
             } else {
                 any_non_excluded_item_in_cart = true;
             }
-            
+
             if (coupon.getProductCategories().size() != 0) {
                 if (isStringExistsInList(String.valueOf(categoryID), coupon.getProductCategories())) {
                     any_valid_category_item_in_cart = true;
@@ -1871,8 +1818,8 @@ public class Checkout extends Fragment {
             } else {
                 any_valid_category_item_in_cart = true;
             }
-            
-            
+
+
             if (coupon.getProductIds().size() != 0) {
                 if (isStringExistsInList(String.valueOf(productID), coupon.getProductIds())) {
                     any_valid_item_in_cart = true;
@@ -1880,12 +1827,12 @@ public class Checkout extends Fragment {
             } else {
                 any_valid_item_in_cart = true;
             }
-            
+
         }
-        
-        
+
+
         /////////////////////////////////////////////////////
-        
+
         if (!disableOtherCoupons) {
             if (!coupon_already_applied) {
                 if (!Utilities.checkIsDatePassed(coupon.getExpiryDate())) {
@@ -1893,16 +1840,16 @@ public class Checkout extends Fragment {
                         if (user_used_this_coupon_counter <= Integer.parseInt(coupon.getUsageLimitPerUser())) {
                             if (valid_user_email_for_coupon) {
                                 if (Double.parseDouble(coupon.getMinimumAmount()) <= checkoutTotal) {
-                                    if (Double.parseDouble(coupon.getMaximumAmount()) == 0.0  ||  checkoutTotal <= Double.parseDouble(coupon.getMaximumAmount())) {
-                                        if (Integer.parseInt(coupon.getLimitUsageToXItems()) == 0  ||  checkoutItemsList.size() <= Integer.parseInt(coupon.getLimitUsageToXItems())) {
+                                    if (Double.parseDouble(coupon.getMaximumAmount()) == 0.0 || checkoutTotal <= Double.parseDouble(coupon.getMaximumAmount())) {
+                                        if (Integer.parseInt(coupon.getLimitUsageToXItems()) == 0 || checkoutItemsList.size() <= Integer.parseInt(coupon.getLimitUsageToXItems())) {
                                             if (valid_sale_items_in_for_coupon) {
                                                 if (any_non_excluded_category_item_in_cart) {
                                                     if (any_non_excluded_item_in_cart) {
                                                         if (any_valid_category_item_in_cart) {
                                                             if (any_valid_item_in_cart) {
-                                                                
+
                                                                 return true;
-                                                                
+
                                                             } else {
                                                                 showSnackBarForCoupon(getString(R.string.coupon_is_not_for_these_products));
                                                                 return false;
@@ -1959,50 +1906,47 @@ public class Checkout extends Fragment {
             showSnackBarForCoupon(getString(R.string.coupon_cannot_used_with_existing));
             return false;
         }
-        
+
     }
-    
-    
-    
+
+
     //*********** Show SnackBar with given Message  ********//
-    
+
     private void showSnackBarForCoupon(String msg) {
         final Snackbar snackbar = Snackbar.make(rootView, msg, Snackbar.LENGTH_INDEFINITE);
         snackbar.setAction("OK", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        snackbar.dismiss();
-                    }
-                });
+            @Override
+            public void onClick(View v) {
+                snackbar.dismiss();
+            }
+        });
         snackbar.show();
     }
-    
-    
-    
+
+
     //*********** Check if the given String exists in the given List ********//
-    
+
     private boolean isStringExistsInList(String str, List<String> stringList) {
         boolean isExists = false;
-    
-        for (int i=0;  i<stringList.size();  i++) {
+
+        for (int i = 0; i < stringList.size(); i++) {
             if (stringList.get(i).equalsIgnoreCase(str)) {
                 isExists = true;
             }
         }
-        
-        
+
+
         return isExists;
     }
-    
-    
-    
+
+
     //*********** Setup Demo Coupons Dialog ********//
-    
+
     private void setupDemoCoupons() {
-    
+
         demo_coupons_text.setVisibility(View.VISIBLE);
-        demo_coupons_text.setPaintFlags(demo_coupons_text.getPaintFlags()| Paint.UNDERLINE_TEXT_FLAG);
-        
+        demo_coupons_text.setPaintFlags(demo_coupons_text.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+
         demo_coupons_text.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -2019,7 +1963,7 @@ public class Checkout extends Fragment {
                 TextView dialog_title = (TextView) dialogView.findViewById(R.id.dialog_title);
                 ListView dialog_list = (ListView) dialogView.findViewById(R.id.dialog_list);
 
-                dialog_title.setText(getString(R.string.search) +" "+ getString(R.string.coupon));
+                dialog_title.setText(getString(R.string.search) + " " + getString(R.string.coupon));
                 dialog_list.setVerticalScrollBarEnabled(true);
                 dialog_list.setAdapter(couponsListAdapter);
 
@@ -2036,20 +1980,18 @@ public class Checkout extends Fragment {
             }
         });
     }
-    
-    
-    
+
+
     //*********** Sets selected Coupon code from the Dialog ********//
-    
+
     public void setCouponCode(String code) {
         checkout_coupon_code.setText(code);
         demoCouponsDialog.dismiss();
     }
-    
-    
-    
+
+
     //*********** Demo Coupons List ********//
-    
+
     private List<CouponsInfo> demoCouponsList() {
         List<CouponsInfo> couponsList = new ArrayList<>();
 
@@ -2131,7 +2073,7 @@ public class Checkout extends Fragment {
     private void RequestShippingRates() {
 
         dialogLoader.showProgressDialog();
-        ProductDetails product=checkoutItemsList.get(0).getCustomersBasketProduct();
+        ProductDetails product = checkoutItemsList.get(0).getCustomersBasketProduct();
         //Log.e("QTY:", String.valueOf(checkoutItemsList.get(1).getCustomersBasketProduct().getProductsId()));
 
         PostTaxAndShippingData postTaxAndShippingData = new PostTaxAndShippingData();
@@ -2142,7 +2084,7 @@ public class Checkout extends Fragment {
 
 
         // Get ProductWeight, WeightUnit and ProductsList
-        for (int i=0;  i<checkoutItemsList.size();  i++) {
+        for (int i = 0; i < checkoutItemsList.size(); i++) {
             productWeight += Double.parseDouble(checkoutItemsList.get(i).getCustomersBasketProduct().getProductsWeight());
             productWeightUnit = checkoutItemsList.get(i).getCustomersBasketProduct().getProductsWeightUnit();
             productsList.add(checkoutItemsList.get(i).getCustomersBasketProduct());
@@ -2182,21 +2124,18 @@ public class Checkout extends Fragment {
 
                     if (response.body().getSuccess().equalsIgnoreCase("1")) {
 
-                        Log.e("Tax Response:",response.body().getData().getTax().toString());
+                        Log.e("Tax Response:", response.body().getData().getTax().toString());
 
-                       // addShippingMethods(response.body().getData());
+                        // addShippingMethods(response.body().getData());
 
-                    }
-                    else if (response.body().getSuccess().equalsIgnoreCase("0")) {
+                    } else if (response.body().getSuccess().equalsIgnoreCase("0")) {
                         Snackbar.make(rootView, response.body().getMessage(), Snackbar.LENGTH_LONG).show();
 
-                    }
-                    else {
+                    } else {
                         // Unable to get Success status
                         Snackbar.make(rootView, getString(R.string.unexpected_response), Snackbar.LENGTH_SHORT).show();
                     }
-                }
-                else {
+                } else {
                     Toast.makeText(getContext(), response.message(), Toast.LENGTH_SHORT).show();
                 }
 
@@ -2205,12 +2144,10 @@ public class Checkout extends Fragment {
             @Override
             public void onFailure(Call<ShippingRateData> call, Throwable t) {
                 dialogLoader.hideProgressDialog();
-                Toast.makeText(getContext(), "NetworkCallFailure : "+t, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "NetworkCallFailure : " + t, Toast.LENGTH_LONG).show();
             }
         });
     }
-
-
 
 
     //*********** Validate Payment Card Inputs ********//
